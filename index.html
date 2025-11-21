@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Web Tuner</title>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #111827;
+        color: white;
+        text-align: center;
+    }
+
+    #note {
+        font-size: 6rem;
+        font-weight: 800;
+        margin-top: 3rem;
+        text-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    }
+
+    #freqText {
+        margin-top: 0.6rem;
+        font-size: 1.1rem;
+        color: #d1d5db;
+    }
+
+    #audioStatus {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #9ca3af;
+    }
+
+    #needleTrack {
+        width: 300px;
+        height: 8px;
+        margin: 0 auto;
+        background: linear-gradient(90deg, rgba(75,85,99,0.12), rgba(0,0,0,0.06));
+        border-radius: 6px;
+        position: relative;
+    }
+
+    #needle {
+        position: absolute;
+        top: -12px;
+        transform: translateX(-50%);
+        transition: left 120ms linear;
+    }
+
+    #needle div {
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
+    }
+
+    #greenZone {
+        position: absolute;
+        height: 100%;
+        background: rgba(34,197,94,0.18);
+    }
+
+    #centerLine {
+        position: absolute;
+        left: 50%;
+        top: -6px;
+        width: 2px;
+        height: 20px;
+        background: #fff;
+        transform: translateX(-50%);
+        opacity: 0.6;
+    }
+
+    #ticks {
+        display: flex;
+        justify-content: space-between;
+        width: 300px;
+        margin: 6px auto 0;
+        font-size: 12px;
+        color: #9ca3af;
+    }
+</style>
+</head>
+
+<body>
+
+<h1 style="margin-top: 1rem;">Tuner</h1>
+
+<div id="note">...</div>
+
+<div id="needleContainer" style="margin-top: 2rem;">
+    <div id="needleTrack">
+        <div id="greenZone"></div>
+        <div id="centerLine"></div>
+        <div id="needle"><div></div></div>
+    </div>
+    <div id="ticks"><div>-50</div><div>0</div><div>+50</div></div>
+</div>
+
+<div id="freqText">—</div>
+<div id="audioStatus">Audio: inactive</div>
+
+<script src="https://unpkg.com/fft.js/dist/fft.min.js"></script>
+<script>
+/* ---------------- CONSTANTS ---------------- */
+const SAMPLE_FREQ_FALLBACK = 48000;
+const WINDOW_SIZE = 32768;
+const WINDOW_STEP = 8192;
+const NUM_HPS = 5;
+const POWER_THRESH = 1e-7;
+const WHITE_NOISE_THRESH = 0.2;
+const CONCERT_PITCH = 440;
+const ALL_NOTES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"];
+
+/* -------------- Find Closest Musical Note -------------- */
+function findClosestNote(pitch) {
+    if (!pitch || pitch <= 0) return ["...", 0];
+    const i = Math.round(Math.log2(pitch / CONCERT_PITCH) * 12);
+    const closestNote = ALL_NOTES[((i % 12) + 12) % 12] + String(4 + Math.floor((i + 9) / 12));
+    const closestPitch = CONCERT_PITCH * Math.pow(2, i / 12);
+    return [closestNote, closestPitch];
+}
+
+/* ---------------------- DOM ELEMENTS -------------------- */
+const noteEl = document.getElementById("note");
+const freqEl = document.getElementById("freqText");
+const audioStatusEl = document.getElementById("audioStatus");
+const needleEl = document.getElementById("needle");
+const greenZoneEl = document.getElementById("greenZone");
+
+let cents = 0;
+let lastDetectAt = 0;
+
+/* Green zone positioning (same math as JSX version) */
+const CLAMP = 50;
+const inTuneWidthPercent = (5 * 2 / CLAMP) * 100;
+const leftPercentGreen = 50 - inTuneWidthPercent / 2;
+greenZoneEl.style.left = leftPercentGreen + "%";
+greenZoneEl.style.width = inTuneWidthPercent + "%";
+
+/* ---------------------- TUNER INIT ---------------------- */
+async function startTuner() {
+    try {
+        const fft = new FFT(WINDOW_SIZE);
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1 } });
+
+        audioStatusEl.textContent = "Audio: active";
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let sampleRate = audioCtx.sampleRate || SAMPLE_FREQ_FALLBACK;
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+
+        const ringBuffer = new Float32Array(WINDOW_SIZE);
+        let rbWrite = 0;
+
+        processor.onaudioprocess = (evt) => {
+            const inBuf = evt.inputBuffer.getChannelData(0);
+
+            for (let i = 0; i < inBuf.length; i++) {
+                ringBuffer[rbWrite] = inBuf[i];
+                rbWrite = (rbWrite + 1) % WINDOW_SIZE;
+            }
+
+            if ((rbWrite % WINDOW_STEP) < inBuf.length) {
+                const recent = new Float32Array(WINDOW_SIZE);
+                const tail = ringBuffer.subarray(rbWrite);
+                recent.set(tail, 0);
+                recent.set(ringBuffer.subarray(0, rbWrite), tail.length);
+
+                const res = analyzeBuffer(recent, sampleRate, fft);
+                if (res) {
+                    noteEl.textContent = res.note;
+
+                    freqEl.textContent = `${res.detected_freq}/${res.closest_pitch}`;
+
+                    const detected = res.detected_freq || 0;
+                    const closest = res.closest_pitch || 1;
+                    cents = Math.round(1200 * Math.log2(detected / closest));
+                    lastDetectAt = Date.now();
+
+                    updateNeedle();
+                }
+            }
+        };
+
+        source.connect(processor);
+        processor.connect(audioCtx.destination);
+
+    } catch (err) {
+        audioStatusEl.textContent = "Audio: inactive (permission denied)";
+        console.error(err);
+    }
+}
+
+/* ---------------------- NEEDLE DISPLAY ---------------------- */
+function updateNeedle() {
+    const clampC = Math.max(-CLAMP, Math.min(CLAMP, cents));
+    const needleLeftPercent = 50 + (clampC / CLAMP) * 45;
+
+    const isInTune = Math.abs(cents) <= 5;
+    const triangle = needleEl.querySelector("div");
+    triangle.style.borderBottom = `12px solid ${isInTune ? "#22c55e" : "#fb7185"}`;
+
+    needleEl.style.left = needleLeftPercent + "%";
+}
+
+/* ---------------------- ANALYSIS ---------------------- */
+function analyzeBuffer(buffer, sampleRate, fft) {
+    const N = buffer.length;
+    const hann = new Float32Array(N);
+    for (let i = 0; i < N; i++) hann[i] = 0.5 * (1 - Math.cos(2 * Math.PI * i / (N - 1)));
+
+    const real = new Float32Array(N);
+    for (let i = 0; i < N; i++) real[i] = buffer[i] * hann[i];
+
+    const out = fft.createComplexArray();
+    fft.realTransform(out, real);
+    fft.completeSpectrum(out);
+
+    const half = N / 2;
+    const mag = new Float32Array(half);
+
+    for (let k = 0; k < half; k++) {
+        const re = out[2*k];
+        const im = out[2*k+1];
+        mag[k] = Math.hypot(re, im);
+    }
+
+    const deltaFreq = sampleRate / N;
+    const idx62 = Math.floor(62 / deltaFreq);
+    for (let i = 0; i < idx62; i++) mag[i] = 0;
+
+    const OCT = [50,100,200,400,800,1600,3200,6400,12800,25600];
+    for (let j = 0; j < OCT.length - 1; j++) {
+        const s = Math.floor(OCT[j] / deltaFreq);
+        let e = Math.floor(OCT[j+1] / deltaFreq);
+        e = Math.min(e, mag.length);
+
+        let sum = 0;
+        for (let i = s; i < e; i++) sum += mag[i]*mag[i];
+        const avg = Math.sqrt(sum / (e - s));
+        const thresh = WHITE_NOISE_THRESH * avg;
+
+        for (let i = s; i < e; i++) if (mag[i] < thresh) mag[i] = 0;
+    }
+
+    let magCopy = mag.slice();
+    let norm = 0;
+    for (let i = 0; i < magCopy.length; i++) norm += magCopy[i]*magCopy[i];
+    norm = Math.sqrt(norm) || 1;
+    for (let i = 0; i < magCopy.length; i++) magCopy[i] /= norm;
+
+    let hps = magCopy.slice();
+    for (let h = 2; h <= NUM_HPS; h++) {
+        const down = new Float32Array(Math.floor(magCopy.length / h));
+        for (let i = 0; i < down.length; i++) down[i] = magCopy[i*h];
+
+        const len = Math.min(hps.length, down.length);
+        const tmp = new Float32Array(len);
+        for (let i = 0; i < len; i++) tmp[i] = hps[i] * down[i];
+        hps = tmp;
+
+        if (hps.every(v => v === 0)) break;
+    }
+
+    let maxInd = 0, maxVal = 0;
+    for (let i = 0; i < hps.length; i++)
+        if (hps[i] > maxVal) { maxVal = hps[i]; maxInd = i; }
+
+    const maxFreq = maxInd * deltaFreq;
+
+    let power = 0;
+    for (let i = 0; i < buffer.length; i++) power += buffer[i]*buffer[i];
+    power /= buffer.length;
+
+    if (power < POWER_THRESH) return null;
+
+    const [closestNote, closestPitch] = findClosestNote(maxFreq || 0);
+    return {
+        note: closestNote,
+        detected_freq: Math.round(maxFreq*10)/10,
+        closest_pitch: Math.round(closestPitch*10)/10
+    };
+}
+
+/* ---------------------- START ---------------------- */
+startTuner();
+</script>
+</body>
+</html>
