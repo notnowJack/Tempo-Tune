@@ -12,6 +12,6 @@
         "sizes": "192x192"
     }
   ],
-  "start_url" : "./",
+  "start_url" : "./tuner.html",
   "display": "standalone"
 }
