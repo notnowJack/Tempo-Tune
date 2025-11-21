@@ -13,9 +13,7 @@ const leftLabel = document.getElementById('leftLabel');
 const rightLabel = document.getElementById('rightLabel');
 const gCanvas = document.getElementById('gauge');
 const vCanvas = document.getElementById('visual');
-const micBtn = document.getElementById('micBtn');
-const metBtn = document.getElementById('metBtn');
-const settingsBtn = document.getElementById('settingsBtn');
+
 const silence_frames_threshold = 8;
 const min_rms = 0.01;
 const min_confidence_ratio = 0.1;
@@ -26,6 +24,8 @@ const vCtx = vCanvas.getContext('2d');
 function updateUI(frequency){
   if(!frequency || frequency <= 0){
     noteEl.textContent = '—';
+    leftLabel.textContent = '-';
+    rightLabel.textContent = '-';
     drawGauge(null);
     drawWaveform(new Float32Array(bufferLength)); // clear
     return;
@@ -33,11 +33,21 @@ function updateUI(frequency){
   
   const noteNum = 12 * (Math.log(frequency / refA) / Math.log(2)) + 69;
   const rounded = Math.round(noteNum);
+  const noteIndex = ((rounded % 12) + 12) % 12;
   const noteName = noteStrings[((rounded % 12) + 12) % 12];
   const octave = Math.floor((rounded / 12) - 1);
   const noteLabel = noteName + octave
   const cents = Math.round((noteNum - rounded) * 100);
   noteEl.textContent = noteLabel;
+
+    // Calculate left and right notes
+  const leftIndex = (noteIndex + 11) % 12;
+  const rightIndex = (noteIndex + 1) % 12;
+  const leftOctave = leftIndex === 11 ? octave - 1 : octave;
+  const rightOctave = rightIndex === 0 ? octave + 1 : octave;
+  leftLabel.textContent = noteStrings[leftIndex] + leftOctave;
+  rightLabel.textContent = noteStrings[rightIndex] + rightOctave;
+
   drawGauge(cents);
 }
 
@@ -165,24 +175,10 @@ async function start(){
     dataArray = new Float32Array(bufferLength);
     mediaStreamSource.connect(analyser);
     statusEl.textContent = 'Listening...';
-    micBtn.classList.add('active');
     tick();
   }catch(err){
     console.error(err); statusEl.textContent = 'Microphone access denied or error.';
   }
-}
-
-function stop(){
-  if(rafId) cancelAnimationFrame(rafId);
-  if(stream){
-    stream.getTracks().forEach(t=>t.stop()); stream = null;
-  }
-  if(audioContext){ audioContext.close(); audioContext = null; }
-  statusEl.textContent = 'Stopped.';
-  micBtn.classList.remove('active');
-  lastFreq = null;
-  updateUI(null);
-  vCtx.clearRect(0,0,vCanvas.width,vCanvas.height);
 }
 
 function tick(){
@@ -191,6 +187,7 @@ function tick(){
   const freq = autoCorrelate(dataArray, audioContext.sampleRate);
   if(freq && freq !== -1 && freq < 5000){
     lastFreq = smoothFrequency(lastFreq, freq, 6);
+    silenceFrames = 0;
     updateUI(lastFreq);
   } else {
     silenceFrames ++;
@@ -228,12 +225,13 @@ function drawWaveform(buf){
   vCtx.stroke();
 }
 
-micBtn.addEventListener('click', ()=>{
-  if(stream) stop(); else start();
-});
-metBtn.addEventListener('click', ()=>{ statusEl.textContent = 'Metronome not implemented in this mockup.'; metBtn.classList.toggle('active'); });
-settingsBtn.addEventListener('click', ()=>{ statusEl.textContent = 'Settings not implemented in this mockup.'; settingsBtn.classList.toggle('active'); });
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', start);
+} else {
+  start();
+}
 
-// initialize visuals
+// initialize visuals 
 drawGauge(null);
 drawWaveform(new Float32Array(2048));
+
