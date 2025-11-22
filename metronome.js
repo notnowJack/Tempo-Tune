@@ -69,7 +69,7 @@ function renderIndicator(currentBeat) {
 }
 
 function startMetronome() {
-    clickSound = localStorage.getItem('metronomeClickSound') || "sine";
+    clickSound = localStorage.getItem('metClickSound') || "sine";
     let bpm = parseInt(bpmInput.value, 10);
     if (isNaN(bpm) || bpm < 30) bpm = 30;
     if (bpm > 300) bpm = 300;
