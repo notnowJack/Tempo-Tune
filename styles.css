@@ -39,8 +39,8 @@ body{
 .frame{
 	width:100%;
 	max-width:420px;
-	height:100vh;
-	max-height:100vh;
+	height:100dvh; 
+    max-height:100dvh;
 	overflow:hidden;
 	background:var(--card);
 	display:flex;
