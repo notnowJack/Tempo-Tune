@@ -34,6 +34,10 @@ body{
 	min-height: 100vh;
 	padding: env(safe-area-inset-top, 8px) env(safe-area-inset-right, 8px) env(safe-area-inset-bottom, 8px) env(safe-area-inset-left, 8px);
 	color:var(--dark);
+	width:100%;
+	max-width:420px;
+	height:100dvh; 
+    max-height:100dvh;
 }
 
 .frame{
