@@ -54,18 +54,20 @@ function startMetronome() {
     bpmInput.value = bpm;
     beatsPerBar = parseInt(beatsPerBarInput.value, 10) || 4;
     let beat = 1;
-    renderIndicator(beat);
-    playClick(true);
+    
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    bpmInput.disabled = true;
+    beatsPerBarInput.disabled = true;
+    
     metronomeInterval = setInterval(() => {
         const isDownBeat = (beat %  beatsPerBar === 0);
         beat = ((beat) % beatsPerBar) + 1;
         renderIndicator(beat);
         playClick(isDownBeat); 
     }, 60000 / bpm);
-    startBtn.disabled = true;
-    stopBtn.disabled = false;
-    bpmInput.disabled = true;
-    beatsPerBarInput.disabled = true;
+
+    renderIndicator(beat);
 }
 
 function stopMetronome() {
