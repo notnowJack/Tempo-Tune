@@ -3,8 +3,17 @@ const bpmInput = document.getElementById("bpmInput");
 const startBtn = document.getElementById("startMet");
 const stopBtn = document.getElementById("stopMet");
 const indicator = document.getElementById("metIndicator");
+const beatsPerBarInput = document.getElementById("beatsPerBar");
 
-const beatsPerBar = 4;
+let beatsPerBar = parseInt(beatsPerBarInput.value, 10) || 4;
+
+beatsPerBarInput.addEventListener("change", () => {
+    beatsPerBar = parseInt(beatsPerBarInput.value, 10) || 4;
+    if (!metronomeInterval) {
+        renderIndicator(1);
+    }
+});
+
 
 function playClick(isDownBeat = false) {
     // web audio apip
@@ -37,6 +46,7 @@ function startMetronome() {
     if (isNaN(bpm) || bpm < 30) bpm = 30;
     if (bpm > 300) bpm = 300;
     bpmInput.value = bpm;
+    beatsPerBar = parseInt(beatsPerBarInput.value, 10) || 4;
     let beat = 1;
     renderIndicator(beat);
     playClick(true);
@@ -49,6 +59,7 @@ function startMetronome() {
     startBtn.disabled = true;
     stopBtn.disabled = false;
     bpmInput.disabled = true;
+    beatsPerBarInput.disabled = true;
 }
 
 function stopMetronome() {
@@ -58,6 +69,7 @@ function stopMetronome() {
     startBtn.disabled = false;
     stopBtn.disabled = true;
     bpmInput.disabled = false;
+    beatsPerBarInput.disabled = false;
 }
 
 startBtn.addEventListener("click", startMetronome);
