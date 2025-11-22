@@ -1,12 +1,17 @@
+// notes
 const noteStrings = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+// inputs
 let audioContext, analyser, mediaStreamSource, rafId;
+// samples
 let bufferLength = 2048;
 let dataArray;
+// A4 frequency
 let refA = 440;
 let stream;
 let lastFreq = null;
 let silenceFrames = 0;
 
+// constants
 const statusEl = document.getElementById('status');
 const noteEl = document.getElementById('note');
 const leftLabel = document.getElementById('leftLabel');
@@ -14,6 +19,7 @@ const rightLabel = document.getElementById('rightLabel');
 const gCanvas = document.getElementById('gauge');
 const vCanvas = document.getElementById('visual');
 
+// constants for silence detection
 const silence_frames_threshold = 8;
 const min_rms = 0.01;
 const min_confidence_ratio = 0.1;
@@ -21,7 +27,9 @@ const min_confidence_ratio = 0.1;
 const gCtx = gCanvas.getContext('2d');
 const vCtx = vCanvas.getContext('2d');
 
+// update the UI with note
 function updateUI(frequency){
+  // if there's no frequency make the notes blank
   if(!frequency || frequency <= 0){
     noteEl.textContent = '—';
     leftLabel.textContent = '-';
@@ -30,7 +38,8 @@ function updateUI(frequency){
     drawWaveform(new Float32Array(bufferLength)); // clear
     return;
   }
-  
+    
+  // constants for finding notes
   const noteNum = 12 * (Math.log(frequency / refA) / Math.log(2)) + 69;
   const rounded = Math.round(noteNum);
   const noteIndex = ((rounded % 12) + 12) % 12;
@@ -40,7 +49,7 @@ function updateUI(frequency){
   const cents = Math.round((noteNum - rounded) * 100);
   noteEl.textContent = noteLabel;
 
-    // Calculate left and right notes
+  // Calculate left and right notes
   const leftIndex = (noteIndex + 11) % 12;
   const rightIndex = (noteIndex + 1) % 12;
   const leftOctave = leftIndex === 11 ? octave - 1 : octave;
@@ -51,14 +60,16 @@ function updateUI(frequency){
   drawGauge(cents);
 }
 
+// draw the tuning gauge
 function drawGauge(cents){
-  // high-DPI scaling
   const DPR = window.devicePixelRatio || 1;
   const w = gCanvas.clientWidth * DPR;
   const h = gCanvas.clientHeight * DPR;
+  // validate size
   if (gCanvas.width !== w || gCanvas.height !== h){
     gCanvas.width = w; gCanvas.height = h;
   }
+  // clear canvas
   gCtx.clearRect(0,0,w,h);
   gCtx.save();
   gCtx.translate(w/2, h*0.9);
@@ -100,6 +111,7 @@ function drawGauge(cents){
   gCtx.restore();
 }
 
+// algorithm to detect pitch
 function autoCorrelate(buf, sampleRate) {
   let SIZE = buf.length;
   let rms = 0;
@@ -109,9 +121,10 @@ function autoCorrelate(buf, sampleRate) {
     rms += val * val;
   }
   rms = Math.sqrt(rms / SIZE);
-  if (rms < min_rms) return -1; // too quiet
+  // too quiet
+  if (rms < min_rms) return -1; 
 
-  // --- Trim leading noise ---
+  // trim noise
   let r1 = 0;
   let threshold = 0.1;
   while (r1 < SIZE && Math.abs(buf[r1]) < threshold) r1++;
@@ -125,18 +138,18 @@ function autoCorrelate(buf, sampleRate) {
 
   let c = new Array(SIZE).fill(0);
 
-  // --- Autocorrelation ---
+  // autocorrelation
   for (let i = 0; i < SIZE; i++) {
     for (let j = 0; j < SIZE - i; j++) {
       c[i] += buf[j] * buf[j + i];
     }
   }
 
-  // --- Find the first positive slope ---
+  // find the first positive slope
   let d = 0;
   while (d < SIZE - 1 && c[d] > c[d + 1]) d++;
 
-  // --- Find max after that ---
+  // find max after that
   let maxval = -1, maxpos = -1;
   for (let i = d; i < SIZE; i++) {
     if (c[i] > maxval) { maxval = c[i]; maxpos = i; }
@@ -146,7 +159,7 @@ function autoCorrelate(buf, sampleRate) {
 
   if (c[0] <= 0 || maxval < min_confidence_ratio * c[0]) return -1;
 
-  // --- Parabolic interpolation for accuracy ---
+  // parabolic interpolation for accuracy
   let x1 = c[maxpos - 1], x2 = c[maxpos], x3 = c[maxpos + 1];
   let a = (x1 + x3 - 2 * x2) / 2;
   let b = (x3 - x1) / 2;
@@ -154,13 +167,17 @@ function autoCorrelate(buf, sampleRate) {
 
   return sampleRate / maxpos;
 }
+
+// smooth frequency changes
 function smoothFrequency(prev, current, s=6){
   if(!prev) return current;
   const alpha = Math.max(0.05, Math.min(1, s/10));
   return prev * (1 - alpha) + current * alpha;
 }
 
+// start the audio processing
 async function start(){
+  // try get an input streamt
   try{
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
       statusEl.textContent = 'getUserMedia not supported in this browser.'; return;
@@ -175,15 +192,20 @@ async function start(){
     dataArray = new Float32Array(bufferLength);
     mediaStreamSource.connect(analyser);
     statusEl.textContent = 'Listening...';
+    
     tick();
+  
+  // errors for microphone access
   }catch(err){
     console.error(err); statusEl.textContent = 'Microphone access denied or error.';
   }
 }
 
+// function for tick
 function tick(){
   analyser.getFloatTimeDomainData(dataArray);
   drawWaveform(dataArray);
+  // get the frequency
   const freq = autoCorrelate(dataArray, audioContext.sampleRate);
   if(freq && freq !== -1 && freq < 5000){
     lastFreq = smoothFrequency(lastFreq, freq, 6);
@@ -196,11 +218,13 @@ function tick(){
     } else {
         lastFreq = lastFreq ? lastFreq * 0.985 : null;
     }
+    //update the UI
     updateUI(lastFreq);
   }
   rafId = requestAnimationFrame(tick);
 }
 
+// draw the waveform
 function drawWaveform(buf){
   const DPR = window.devicePixelRatio || 1;
   const w = vCanvas.clientWidth * DPR, h = vCanvas.clientHeight * DPR;
@@ -214,6 +238,7 @@ function drawWaveform(buf){
   vCtx.beginPath();
   vCtx.lineWidth = 2*DPR;
   vCtx.strokeStyle = '#000';
+  
   const step = Math.ceil(buf.length / w);
   let x = 0;
   for(let i=0;i<w;i++){
@@ -225,6 +250,7 @@ function drawWaveform(buf){
   vCtx.stroke();
 }
 
+// start on page load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', start);
 } else {

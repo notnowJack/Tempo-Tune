@@ -1,27 +1,31 @@
-<!-- ...existing code... -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tempo Tune</title>
+   <!-- css style sheet and manifest for PWA -->
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
+  <!-- Top Bar -->
   <div class="frame">
     <div class="topbar">
       <h1>Metronome</h1>
     </div>
 
+    <!-- Main Content -->
     <div class="content">
       <div class="settings-card">
         <div class="settings-row">
+          <!-- Beats per minute option -->
           <label for="bpmInput">BPM</label>
           <input id="bpmInput" type="number" min="30" max="300" value="120" style="width:70px" />
         </div>
 
+        <!-- Beats per bar option -->
         <div class="settings-row">
           <label for="beatsPerBar">Beats/Bar</label>
           <select id="beatsPerBar" style="width:70px">
@@ -39,15 +43,21 @@
           </select>
         </div>
         
+        <!-- Metronome start/stop buttons -->
         <div class="settings-row" style="margin-top:12px">
           <button id="startMet" class="toggle">Start</button>
           <button id="stopMet" class="toggle" disabled>Stop</button>
         </div>
         <div id="metIndicator" style="margin-top:20px; text-align:center; font-size:32px; height:40px;">
         </div>
+        <!-- Pendulum Canvas -->
+        <div style="display:flex; justify-content:center; margin-top:18px;">
+          <canvas id="pendulumCanvas" width="380" height="320" style="background:transparent;"></canvas>
+        </div>
       </div>
     </div>
 
+    <!-- Bottom Navigation Bar -->
     <div class="nav" role="navigation" aria-label="Bottom navigation">
       <a id="micBtn" class="active" title="Tuner" href="index.html">
         <img src="./icons/tuner.png" alt="Tuner" class="nav-icon" />
@@ -63,6 +73,7 @@
     </div>
   </div>
 
+  <!-- Settings script and metronome script -->
   <script src="theme.js" defer></script>
   <script src="metronome.js" defer></script>
 

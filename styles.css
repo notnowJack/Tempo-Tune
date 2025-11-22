@@ -1,3 +1,4 @@
+/* Light Mode Theme */
 [data-theme="light"]{
 	--bg:#ffffff;
 	--dark:#0b1220;
@@ -6,11 +7,11 @@
 	--muted:#94a3b8;
 	--panel:#f3f6f9;
 	--nav:#f0f5f9;
-	--active:#c9f6ff;
+	--active:#61c5da;
 	color-scheme:light;
 }
 
-/* dark theme overrides */
+/* Dark Mode Theme */
 [data-theme="dark"]{
 	--bg: #0b1220;
 	--dark: #e6eef6;
@@ -19,15 +20,16 @@
 	--muted: #9fb4c7;
 	--panel: #071621;
 	--nav: #071621;
-	--active: rgba(43,156,255,0.15);
+	--active: rgba(75, 121, 161, 0.15);
 	color-scheme: dark;
 }
 
-
+/* Body styles */
 body{
 	margin:0;
 	font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;
 	background:linear-gradient(180deg,var(--panel), var(--bg));
+	/* Displaying within single screen, no scrolling */
 	display:flex;
 	align-items:flex-start;
 	justify-content:center;
@@ -41,6 +43,7 @@ body{
   	overflow-y: hidden;
 }
 
+/* Frame of site */
 .frame{
 	width:100%;
 	max-width:420px;
@@ -52,6 +55,7 @@ body{
 	flex-direction:column;
 }
 	
+/* Top bar for titles */
 .topbar{
     background:linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, var(--panel)), var(--panel));
     padding:14px 12px;
@@ -59,11 +63,13 @@ body{
     border-bottom:1px solid rgba(0,0,0,0.06);
 }
 
+/* Headings for title */
 .topbar h1{
 	margin:0;font-size:48px;font-weight:700;color:var(--dark);
   	letter-spacing:1px
 }
 
+/* Main content area */
 .content{
 	padding:10px 14px;
 	flex:1;
@@ -74,6 +80,7 @@ body{
 	justify-content:flex-start;
 }
 
+/* Note wrap display */
 .note-wrap{
 	display:flex;
 	flex-direction:column;
@@ -81,22 +88,26 @@ body{
 	gap:6px;
 	padding-top:6px;
 }
+
+/* Note display */
 .note{
 	font-size:120px;
 	font-weight:800;
 	margin:0;
 }
 
+/* Smaller notes */
 .note-sub{
 	width:100%;
 	display:flex;
 	justify-content:space-between;
 	padding:0 18px;
 	font-weight:600;
-	font-size:18px;
+	font-size:32px;
 	color:var(--dark);
 }
 
+/* Wrap for gauge */
 .gauge-wrap{
 	position:relative;
 	height:150px;
@@ -105,6 +116,8 @@ body{
 	justify-content:center;
 	padding-top:6px;
 }
+
+/* Gauge canvas */
 canvas#gauge{
 	width:320px;
 	height:140px;
@@ -112,6 +125,7 @@ canvas#gauge{
 	background:transparent;
 }
 
+/* Waveform display */
 .wave{
 	height:150px;
 	background:var(--panel);
@@ -123,6 +137,7 @@ canvas#gauge{
 	justify-content:center;
 }
 
+/* Waveform canvas */
 canvas#visual{
 	width:320px;
 	height:120px;
@@ -130,6 +145,7 @@ canvas#visual{
 	background:transparent;
 }
 
+/* Microphone Status */
 .status{
 	font-size:13px;
 	color:var(--muted);
@@ -137,6 +153,7 @@ canvas#visual{
 	margin-top:6px;
 }
 
+/* Bottom Navigation Bar */
 .nav{
 	display:flex;
 	border-top:1px solid rgba(0,0,0,0.06);
@@ -147,6 +164,8 @@ canvas#visual{
 	align-items:center;
 	justify-content:space-around;
 }
+
+/* Navigation Buttons */
 .nav button{
 	width:56px;
 	height:56px;
@@ -160,13 +179,16 @@ canvas#visual{
 	background:linear-gradient(180deg,var(--card), color-mix(in srgb, var(--card) 94%, var(--panel)));
 }
 
+/* Active Navigation Buttons */
 .nav a.nav-link.active
 .nav button.active{
-	background:linear-gradient(180deg,var(--active),#e7fbff);
+	background:linear-gradient(180deg,var(--active),#61bed1);
 	box-shadow:0 6px 18px rgba(125,211,252,0.12);
 	transform:translateY(-2px);
 	border-color:rgba(125,211,252,0.6);
 }
+
+/* Navigation Icons */
 .nav .nav-icon{
 	width:72px;
 	height:72px;
@@ -174,6 +196,7 @@ canvas#visual{
 	object-fit:contain;
 }
 
+/* Navigation Links */
 .nav a.nav-link{
 	text-decoration: none;
 	width: 72px;
@@ -188,6 +211,7 @@ canvas#visual{
 	color: inherit;
 }
 
+/* Settings Card */
 .settings-card {
 	padding: 12px;
 	background: var(--card);
@@ -196,6 +220,7 @@ canvas#visual{
 	box-shadow: 0 4px 12px rgba(2,6,23,0.04);
 }
 
+/* Settings Row */
 .settings-row {
 	display: flex;
 	align-items: center;
@@ -204,6 +229,7 @@ canvas#visual{
 	margin-top: 8px;
 }
 
+/* Toggle Buttons */
 .toggle{
 	padding: 8px 12px;
 	border-radius: 8px;
@@ -212,6 +238,7 @@ canvas#visual{
 	cursor: pointer;
 }
 
+/* Dark Theme Toggle Buttons */
 [data-theme="dark"] .toggle{
 	background: linear-gradient(180deg, #0b1220, #07101a);
 	border-color: rgba(255,255,255,0.06);

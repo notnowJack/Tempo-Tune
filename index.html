@@ -1,24 +1,28 @@
-<!-- ...existing code... -->
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tempo Tune</title>
+  <!-- css style sheet and manifest for PWA -->
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
+  <!-- Top Bar -->
   <div class="frame">
     <div class="topbar">
       <h1>Tuner</h1>
     </div>
 
+    <!-- Main Content -->
     <div class="content">
       <div class="note-wrap">
+        <!-- Note display -->
         <div class="note" id="note">—</div>
         <div class="note-sub">
+          <!-- Side notes -->
           <span id="leftLabel">A#</span>
           <span id="rightLabel">G#</span>
         </div>
@@ -32,9 +36,11 @@
         <canvas id="visual" width="640" height="240"></canvas>
       </div>
 
+      <!-- Status display - previous testing text -->
       <div class="status" id="status">Idle. Tap the left nav button to allow microphone access.</div>
     </div>
 
+    <!-- Bottom Navigation Bar -->
     <div class="nav" role="navigation" aria-label="Bottom navigation">
       <a id="micBtn" class="active" title="Tuner" aria-current="page">
         <img src="./icons/tuner.png" alt="Tuner" class="nav-icon" />
@@ -50,6 +56,7 @@
     </div>
   </div>
 
+  <!-- Settings script and tuner script -->
   <script src="theme.js" defer></script>
   <script src="app.js" defer></script>
 

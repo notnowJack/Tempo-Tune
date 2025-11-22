@@ -4,29 +4,34 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tempo Tune</title>
+  <!-- css style sheet and manifest for PWA -->
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="manifest.json" />
 </head>
 
 <body>
+  <!-- Top Bar -->
   <div class="frame">
     <div class="topbar">
       <h1>Settings</h1>
     </div>
 
-    <!-- added settings content -->
+    <!-- Settings content -->
     <div class="content">
       <div class="settings-card">
+        <!-- Appearance settings -->
         <h2>Appearance</h2>
+        <!-- Dark Mode toggle -->
         <div class="settings-row">
           <label for="themeToggle">Dark mode</label>
-          <!-- <button id="themeToggle" class="toggle" aria-pressed="false">Off</button> -->
           <button type="button" data-theme-toggle aria-label="Change to light theme">Toggle</button>
         </div>
       </div>
 
+      <!-- Metronome settings -->
       <div class="settings-card">
         <h2>Metronome</h2>
+        <!-- Click Sound selection -->
         <div class="settings-row">
           <label for="clickSound">Click Sound</label>
           <select id="clickSound" style="width:110px">
@@ -38,6 +43,7 @@
       </div>
     </div>
 
+    <!-- Bottom navigation Bar -->
     <div class="nav" role="navigation" aria-label="Bottom navigation">
       <a id="micBtn" class="active" title="Tuner" href="index.html">
         <img src="./icons/tuner.png" alt="Tuner" class="nav-icon" />
