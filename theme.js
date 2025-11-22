@@ -96,7 +96,11 @@ window.addEventListener("storage", (event) => {
 const clickSoundInput = document.getElementById("clickSound");
 if (clickSoundInput) {
     const saved = localStorage.getItem("metClickSound");
-    if (saved) clickSoundInput.value = saved;
+    if (saved) {
+        clickSoundInput.value = saved;
+    } else {
+        localStorage.setItem("metClickSound", clickSoundInput.value);
+    }
     clickSoundInput.addEventListener("change", () => {
         localStorage.setItem("metClickSound", clickSoundInput.value);
     });
