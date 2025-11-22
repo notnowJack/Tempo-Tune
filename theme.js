@@ -14,9 +14,7 @@ function calculateSettingAsThemeString({ localStorageTheme, systemSettingDark })
     return "light";
 }
 
-/**
-* Utility function to update the button text and aria-label.
-*/
+
 function updateButton({ buttonEl, isDark }) {
     const newCta = isDark ? "Change to light theme" : "Change to dark theme";
     // use an aria-label if you are omitting text on the button
@@ -25,21 +23,11 @@ function updateButton({ buttonEl, isDark }) {
     buttonEl.innerText = newCta;
 }
 
-/**
-* Utility function to update the theme setting on the html tag
-*/
 function updateThemeOnHtmlEl({ theme }) {
     document.querySelector("html").setAttribute("data-theme", theme);
 }
 
 
-/**
-* On page load:
-*/
-
-/**
-* 1. Grab what we need from the DOM and system settings on page load
-*/
 const button = document.querySelector("[data-theme-toggle]");
 const systemSettingDark = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -105,3 +93,11 @@ window.addEventListener("storage", (event) => {
 })
 
 
+const clickSoundInput = document.getElementById("clickSound");
+if (clickSoundInput) {
+    const saved = localStorage.getItem("metClickSound");
+    if (saved) clickSoundInput.value = saved;
+    clickSoundInput.addEventListener("change", () => {
+        localStorage.setItem("metClickSound", clickSoundInput.value);
+    });
+}
