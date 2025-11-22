@@ -36,15 +36,15 @@ body{
 	color:var(--dark);
 	width:100%;
 	max-width:420px;
-	height:100dvh; 
-    max-height:100dvh;
+	height:100svh; 
+    max-height:100svh;
 }
 
 .frame{
 	width:100%;
 	max-width:420px;
-	height:100dvh; 
-    max-height:100dvh;
+	height:100svh; 
+    max-height:100svh;
 	overflow:hidden;
 	background:var(--card);
 	display:flex;
