@@ -1,3 +1,6 @@
+// Python version of code used for inpiration and logic:
+// https://www.chciken.com/digital/signal/processing/2020/05/13/guitar-tuner.html
+
 // notes
 const noteStrings = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 // inputs
@@ -27,7 +30,7 @@ const min_confidence_ratio = 0.1;
 const gCtx = gCanvas.getContext('2d');
 const vCtx = vCanvas.getContext('2d');
 
-// update the UI with note
+// update the UI with note - done by AI
 function updateUI(frequency){
   // if there's no frequency make the notes blank
   if(!frequency || frequency <= 0){
@@ -35,7 +38,13 @@ function updateUI(frequency){
     leftLabel.textContent = '-';
     rightLabel.textContent = '-';
     drawGauge(null);
-    drawWaveform(new Float32Array(bufferLength)); // clear
+    if (shouldShowWaveform()) {
+      drawWaveform(new Float32Array(bufferLength)); // clear
+    } else {
+      // Hide waveform container if present
+      const wrap = document.getElementById('waveformWrap');
+      if (wrap) wrap.style.display = 'none';
+    }
     return;
   }
     
@@ -60,7 +69,7 @@ function updateUI(frequency){
   drawGauge(cents);
 }
 
-// draw the tuning gauge
+// draw the tuning gauge - done by AI
 function drawGauge(cents){
   const DPR = window.devicePixelRatio || 1;
   const w = gCanvas.clientWidth * DPR;
@@ -224,8 +233,22 @@ function tick(){
   rafId = requestAnimationFrame(tick);
 }
 
-// draw the waveform
+function shouldShowWaveform() {
+  const val = localStorage.getItem('showWaveform');
+  return val === null ? true : val === 'true';
+}
+
+// draw the waveform - done by AI
 function drawWaveform(buf){
+  if (!shouldShowWaveform()) {
+    // Hide waveform container if present
+    const wrap = document.getElementById('waveformWrap');
+    if (wrap) wrap.style.display = 'none';
+    return;
+  } else {
+    const wrap = document.getElementById('waveformWrap');
+    if (wrap) wrap.style.display = '';
+  }
   const DPR = window.devicePixelRatio || 1;
   const w = vCanvas.clientWidth * DPR, h = vCanvas.clientHeight * DPR;
   if (vCanvas.width !== w || vCanvas.height !== h){
@@ -238,7 +261,6 @@ function drawWaveform(buf){
   vCtx.beginPath();
   vCtx.lineWidth = 2*DPR;
   vCtx.strokeStyle = '#000';
-  
   const step = Math.ceil(buf.length / w);
   let x = 0;
   for(let i=0;i<w;i++){

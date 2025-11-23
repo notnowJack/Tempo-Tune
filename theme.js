@@ -105,3 +105,14 @@ if (clickSoundInput) {
         localStorage.setItem("metClickSound", clickSoundInput.value);
     });
 }
+
+// Show Waveform toggle logic
+const showWaveformInput = document.getElementById("showWaveform");
+if (showWaveformInput) {
+    // Set initial state from localStorage
+    const saved = localStorage.getItem("showWaveform");
+    showWaveformInput.checked = saved === null ? true : saved === "true";
+    showWaveformInput.addEventListener("change", () => {
+        localStorage.setItem("showWaveform", showWaveformInput.checked);
+    });
+}
