@@ -2,12 +2,12 @@
   "name": "TempoTune",
   "icons": [
     {
-      "src": "icons/BEAN.jpg",
-      "type": "image/jpg",
+      "src": "icons/icon.png",
+      "type": "image/png",
       "sizes": "512x512"
     },
     {
-        "src": "icons/BEAN.png",
+        "src": "icons/iconSmall.png",
         "type": "image/png",
         "sizes": "192x192"
     }

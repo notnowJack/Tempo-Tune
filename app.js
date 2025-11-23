@@ -30,7 +30,7 @@ const min_confidence_ratio = 0.1;
 const gCtx = gCanvas.getContext('2d');
 const vCtx = vCanvas.getContext('2d');
 
-// update the UI with note - done by AI
+// update the UI with note
 function updateUI(frequency){
   // if there's no frequency make the notes blank
   if(!frequency || frequency <= 0){
@@ -69,7 +69,7 @@ function updateUI(frequency){
   drawGauge(cents);
 }
 
-// draw the tuning gauge - done by AI
+// draw the tuning gauge - function partially done by AI (helped with logic and bugs)
 function drawGauge(cents){
   const DPR = window.devicePixelRatio || 1;
   const w = gCanvas.clientWidth * DPR;
@@ -238,7 +238,7 @@ function shouldShowWaveform() {
   return val === null ? true : val === 'true';
 }
 
-// draw the waveform - done by AI
+// draw the waveform - helped by AI for logic and bugs
 function drawWaveform(buf){
   if (!shouldShowWaveform()) {
     // Hide waveform container if present
